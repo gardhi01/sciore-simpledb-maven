@@ -10,6 +10,7 @@ import simpledb.file.*;
 class BasicBufferMgr {
    private Buffer[] bufferpool;
    private int numAvailable;
+   private int strategy;
    
    /**
     * Creates a buffer manager having the specified number 
@@ -93,6 +94,14 @@ class BasicBufferMgr {
          numAvailable++;
    }
    
+   public Buffer[] getBuffers() {
+       return this.bufferpool;
+   }
+   
+   public void setStrategy(int s) {
+       this.strategy = s;
+   }
+   
    /**
     * Returns the number of available (i.e. unpinned) buffers.
     * @return the number of available buffers
@@ -109,8 +118,18 @@ class BasicBufferMgr {
       }
       return null;
    }
-   
+   // pass algorithm here Naive(0), FIFO(1), LRU(2), Clock(3)
    private Buffer chooseUnpinnedBuffer() {
+      switch (this.strategy) {
+          case 1:
+              useNaiveMethod();
+    
+      default:
+        return null;
+      }
+   }
+   // isPinned looks at how many pins a buffer has
+   private Buffer useNaiveMethod() {
       for (Buffer buff : bufferpool)
          if (!buff.isPinned())
          return buff;

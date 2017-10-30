@@ -1,4 +1,4 @@
-if [ ! -e "server/target/server-2.9-SNAPSHOT.jar" ]
+if [ ! -e "server/target/server-2.10-SNAPSHOT.jar" ]
 then
   mvn clean package
 fi
