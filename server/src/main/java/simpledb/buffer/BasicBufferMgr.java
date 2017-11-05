@@ -2,6 +2,10 @@ package simpledb.buffer;
 
 import simpledb.file.*;
 
+import java.sql.Timestamp;
+import java.time.Instant;
+
+
 /**
  * Manages the pinning and unpinning of buffers to blocks.
  * @author Edward Sciore
@@ -11,6 +15,8 @@ class BasicBufferMgr {
    private Buffer[] bufferpool;
    private int numAvailable;
    private int strategy;
+   private int timeCounter = 0;
+   private int clockHand = 0;
 
    /**
     * Creates a buffer manager having the specified number 
@@ -58,6 +64,9 @@ class BasicBufferMgr {
          if (buff == null)
             return null;
          buff.assignToBlock(blk);
+         // set time in
+         this.timeCounter ++;
+         buff.setTimeIn(this.timeCounter);
       }
       if (!buff.isPinned())
          numAvailable--;
@@ -90,6 +99,9 @@ class BasicBufferMgr {
     */
    synchronized void unpin(Buffer buff) {
       buff.unpin();
+      // set time out
+      this.timeCounter ++;
+      buff.setTimeOut(this.timeCounter);
       if (!buff.isPinned())
          numAvailable++;
    }
@@ -156,15 +168,42 @@ class BasicBufferMgr {
     * FIFO buffer selection strategy
     * @return 
     */
+   // Instants and timestamps don't seem to be precise enough
+   // to correctly implement FIFO and LRU
+   // To correct this, I have added a timeCounter parameter to
+   // this basicBufferManager class to keep an integer counter
+   // that increments whenever a buffer is pinned or unpinned
+   // The buffer class's getter and setter methods therefore 
+   // get and set these integer values to be compared by 
+   // the FIFO and LRU strategies
    private Buffer useFIFOStrategy() {
-      throw new UnsupportedOperationException();
+      Buffer chosen = null;
+      int firstTimeIn = this.timeCounter;
+      for (Buffer buff : bufferpool) {
+          if (!buff.isPinned() && buff.getTimeIn() < firstTimeIn) {
+              chosen = buff;
+              firstTimeIn = buff.getTimeIn();
+          }
+      }
+      return chosen;
+     // throw new UnsupportedOperationException();
    }
    /**
     * LRU buffer selection strategy
     * @return 
     */
    private Buffer useLRUStrategy() {
-      throw new UnsupportedOperationException();
+      Buffer chosen = null;
+      int oldestTimeOut = this.timeCounter;
+      for (Buffer buff : bufferpool) {
+          System.out.println(oldestTimeOut);
+          System.out.println(buff.getTimeIn());
+          if (!buff.isPinned() && buff.getTimeOut() < oldestTimeOut) {
+              chosen = buff;
+              oldestTimeOut = buff.getTimeOut();
+          }
+      }
+      return chosen;
    }
    /**
     * Clock buffer selection strategy

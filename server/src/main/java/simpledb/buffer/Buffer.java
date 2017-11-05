@@ -3,6 +3,10 @@ package simpledb.buffer;
 import simpledb.server.SimpleDB;
 import simpledb.file.*;
 
+import java.sql.Timestamp;
+import java.time.Instant;
+
+
 /**
  * An individual buffer.
  * A buffer wraps a page and stores information about its status,
@@ -19,6 +23,8 @@ public class Buffer {
    private int pins = 0;
    private int modifiedBy = -1;  // negative means not modified
    private int logSequenceNumber = -1; // negative means no corresponding log record
+   private int timein = 0;
+   private int timeout = 0;
 
    /**
     * Creates a new buffer, wrapping a new 
@@ -46,6 +52,22 @@ public class Buffer {
     */
    public int getInt(int offset) {
       return contents.getInt(offset);
+   }
+   
+   public void setTimeIn(int val) {
+       this.timein = val;
+   }
+   
+   public int getTimeIn() {
+       return this.timein;
+   }
+   
+   public void setTimeOut(int val) {
+       this.timeout = val;
+   }
+   
+   public int getTimeOut() {
+       return this.timeout;
    }
 
    /**
