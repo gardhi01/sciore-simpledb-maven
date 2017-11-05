@@ -111,7 +111,6 @@ public class BasicBufferMgrTest {
    */
   @Test
   public void testClockStrategy() {
-    thrown.expect(UnsupportedOperationException.class); //  remove this line once useClockStrategy is implemented
     int expectedResult, result;
     System.out.println("Clock Strategy");
     instance.setStrategy(3);

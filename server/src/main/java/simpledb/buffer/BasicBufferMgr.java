@@ -16,7 +16,7 @@ class BasicBufferMgr {
    private int numAvailable;
    private int strategy;
    private int timeCounter = 0;
-   private int clockHand = 0;
+   private int clockhand = 0;
 
    /**
     * Creates a buffer manager having the specified number 
@@ -159,9 +159,14 @@ class BasicBufferMgr {
     * @return 
     */
    private Buffer useNaiveStrategy() {
-      for (Buffer buff : bufferpool)
-         if (!buff.isPinned())
-         return buff;
+      int index = -1;
+      for (Buffer buff : bufferpool) {
+         index ++;
+         if (!buff.isPinned()) {
+            this.clockhand = index;
+            return buff;
+         }
+      }
       return null;
    }
    /**
@@ -179,10 +184,13 @@ class BasicBufferMgr {
    private Buffer useFIFOStrategy() {
       Buffer chosen = null;
       int firstTimeIn = this.timeCounter;
+      int index = -1;
       for (Buffer buff : bufferpool) {
+          index ++;
           if (!buff.isPinned() && buff.getTimeIn() < firstTimeIn) {
               chosen = buff;
               firstTimeIn = buff.getTimeIn();
+              this.clockhand = index;
           }
       }
       return chosen;
@@ -195,12 +203,13 @@ class BasicBufferMgr {
    private Buffer useLRUStrategy() {
       Buffer chosen = null;
       int oldestTimeOut = this.timeCounter;
+      int index = -1;
       for (Buffer buff : bufferpool) {
-          System.out.println(oldestTimeOut);
-          System.out.println(buff.getTimeIn());
+          index ++;
           if (!buff.isPinned() && buff.getTimeOut() < oldestTimeOut) {
               chosen = buff;
               oldestTimeOut = buff.getTimeOut();
+              this.clockhand = index;
           }
       }
       return chosen;
@@ -209,7 +218,26 @@ class BasicBufferMgr {
     * Clock buffer selection strategy
     * @return 
     */
+   // I added a clockhand parameter to the basicBufferManager class
+   // in order to keep track of which bufferpool index the clock should be pointing
+   // to. This index is updated whenever a buffer is replaced,
+   // and that can be seen in the other strategies too.
    private Buffer useClockStrategy() {
-      throw new UnsupportedOperationException();
+       int clockPosition = this.clockhand + 1;
+       if (clockPosition > bufferpool.length - 1) {
+           clockPosition = 0;
+       }
+       while (clockPosition != this.clockhand) {
+           if (!bufferpool[clockPosition].isPinned()) {
+               this.clockhand = clockPosition;
+               return bufferpool[clockPosition];
+           }
+           clockPosition ++;
+           if (clockPosition > bufferpool.length - 1) {
+               clockPosition = 0;
+           }
+       }
+       
+       return null;
    }
 }
