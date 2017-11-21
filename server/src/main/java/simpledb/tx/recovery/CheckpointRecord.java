@@ -6,7 +6,7 @@ import simpledb.log.BasicLogRecord;
  * The CHECKPOINT log record.
  * @author Edward Sciore
  */
-class CheckpointRecord implements LogRecord {
+public class CheckpointRecord implements LogRecord {
    
    /**
     * Creates a quiescent checkpoint record.
@@ -26,6 +26,7 @@ class CheckpointRecord implements LogRecord {
     * and nothing else.
     * @return the LSN of the last log value
     */
+   
    public int writeToLog() {
       Object[] rec = new Object[] {CHECKPOINT};
       return logMgr.append(rec);

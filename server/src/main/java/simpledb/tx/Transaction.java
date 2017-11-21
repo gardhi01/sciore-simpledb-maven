@@ -1,5 +1,6 @@
 package simpledb.tx;
 
+import java.util.ArrayList;
 import simpledb.server.SimpleDB;
 import simpledb.file.Block;
 import simpledb.buffer.*;
@@ -18,8 +19,11 @@ public class Transaction {
    private RecoveryMgr    recoveryMgr;
    private ConcurrencyMgr concurMgr;
    private int txnum;
+   public static ArrayList<Integer> txnumList = new ArrayList<Integer>();
    private BufferList myBuffers = new BufferList();
-   
+   private boolean checkpoint = QCPThread.inprogress;
+   public static Integer lock = new Integer(0);
+   public static ArrayList<Transaction> runningT = new ArrayList<Transaction>();
    /**
     * Creates a new transaction and its associated 
     * recovery and concurrency managers.
@@ -36,6 +40,22 @@ public class Transaction {
       txnum       = nextTxNumber();
       recoveryMgr = new RecoveryMgr(txnum);
       concurMgr   = new ConcurrencyMgr();
+      // this sleeps each thread after instantiation
+      while (checkpoint) {
+          try {
+          Thread.sleep(1000);
+          } catch (InterruptedException ex) {}
+      }
+      try {
+          lock.wait();
+          Thread.sleep(1000);
+          lock.notifyAll();
+      } catch (InterruptedException ex) {
+      }
+       
+      runningT.add(this);
+      txnumList.add(txnum);
+      commit();
    }
    
    /**
@@ -44,10 +64,13 @@ public class Transaction {
     * writes and flushes a commit record to the log,
     * releases all locks, and unpins any pinned buffers.
     */
+
+
    public void commit() {
       recoveryMgr.commit();
       concurMgr.release();
       myBuffers.unpinAll();
+      runningT.remove(this);
       System.out.println("transaction " + txnum + " committed");
    }
    
@@ -62,6 +85,7 @@ public class Transaction {
       recoveryMgr.rollback();
       concurMgr.release();
       myBuffers.unpinAll();
+      runningT.remove(this);
       System.out.println("transaction " + txnum + " rolled back");
    }
    
