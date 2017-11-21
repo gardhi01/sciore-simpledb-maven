@@ -20,27 +20,22 @@ import static simpledb.tx.recovery.LogRecord.ROLLBACK;
  *
  * @author gardhi01
  */
-public class QCPThread {
+public class QCPThread implements Runnable {
     private static Integer chkptLock;
     public static boolean inprogress = false;
     private ArrayList<Transaction> currentTransaction = Transaction.runningT;
     private ArrayList<Integer> txnums = Transaction.txnumList;
     
     public QCPThread() {
-        for (int i=0; i<10; i++) {
-            Transaction t = new Transaction();
-        }
-        if (txnums.size() == 10) {
-            run();
-        }
-        for (int i=0; i<5; i++) {
-            Transaction t = new Transaction();
-        }
+        run();
+        //for (int i=0; i<5; i++) {
+        //    Transaction t = new Transaction();
+       // }
     }
     
     
     // should stop new transactions from being started
-    
+    @Override
     public void run() {
         try {
             Thread.sleep(1000);

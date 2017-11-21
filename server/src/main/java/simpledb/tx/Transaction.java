@@ -56,6 +56,8 @@ public class Transaction {
       runningT.add(this);
       txnumList.add(txnum);
       commit();
+      if (txnumList.size() == 10)
+          new Thread(new QCPThread()).start();
    }
    
    /**
